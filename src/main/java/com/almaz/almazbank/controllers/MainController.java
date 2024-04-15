@@ -4,8 +4,6 @@ import com.almaz.almazbank.models.*;
 import com.almaz.almazbank.repositories.SberAccountRepository;
 import com.almaz.almazbank.repositories.SberUserRepository;
 import com.almaz.almazbank.services.SberUserService;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,8 +16,6 @@ import org.springframework.web.bind.annotation.*;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 @RestController
 @RequestMapping("/api/sber")
@@ -63,7 +59,15 @@ public class MainController {
     @PutMapping(value = "/update/add-phoneNumber/{login}")
     public ResponseEntity<List<String>> updatePhoneNumber(@RequestBody String phone,
                                                           @RequestParam(name = "login") String login) {
-        SberUser sberUser = sberUserRepository.findByLogin(login);
+        List<String> phones = new ArrayList<>();
+        Optional <SberUser> sberUser = sberUserRepository.findByLogin(login);
+        if (sberUser.isPresent()){
+            SberUser user = sberUser.get();
+            user.setPhoneNumbers(phone);
+        }else {
+            throw new NoSuchElementException();
+        }
+        return new ResponseEntity<>(null,HttpStatus.NOT_FOUND);
     }
     @GetMapping("/phones/{login}")
     public List<String> getPhoneNumbers(@PathVariable("login") String login) throws UsernameNotFoundException {
